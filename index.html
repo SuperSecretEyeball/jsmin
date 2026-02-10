@@ -6,29 +6,33 @@
   <title>Safe JavaScript Comment Remover & Minifier</title>
   <style>
     :root {
-      color-scheme: light dark;
-      --bg: #f7f7fb;
-      --panel: #ffffff;
-      --ink: #1f2937;
-      --muted: #6b7280;
-      --accent: #2563eb;
-      --accent-ink: #ffffff;
-      --border: #d1d5db;
-      --good: #047857;
-      --bad: #b91c1c;
+      color-scheme: dark;
+      --bg: #141923;
+      --bg-soft: #1a2030;
+      --panel: #1d2435;
+      --panel-soft: #252e44;
+      --ink: #e8edf8;
+      --muted: #aeb7cc;
+      --accent: #66a3ff;
+      --accent-ink: #071529;
+      --good: #70f0b2;
+      --bad: #ffa5a5;
+      --raised: -8px -8px 18px rgb(255 255 255 / 3%), 8px 8px 18px rgb(6 8 14 / 70%);
+      --pressed: inset -6px -6px 12px rgb(255 255 255 / 2%), inset 6px 6px 12px rgb(5 7 12 / 80%);
     }
 
     @media (prefers-color-scheme: dark) {
       :root {
-        --bg: #111827;
-        --panel: #1f2937;
-        --ink: #f9fafb;
-        --muted: #9ca3af;
-        --accent: #3b82f6;
-        --accent-ink: #ffffff;
-        --border: #374151;
-        --good: #34d399;
-        --bad: #f87171;
+        --bg: #141923;
+        --bg-soft: #1a2030;
+        --panel: #1d2435;
+        --panel-soft: #252e44;
+        --ink: #e8edf8;
+        --muted: #aeb7cc;
+        --accent: #66a3ff;
+        --accent-ink: #071529;
+        --good: #70f0b2;
+        --bad: #ffa5a5;
       }
     }
 
@@ -37,7 +41,10 @@
     body {
       margin: 0;
       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-      background: var(--bg);
+      background:
+        radial-gradient(circle at 10% 10%, rgb(102 163 255 / 12%), transparent 35%),
+        radial-gradient(circle at 95% 90%, rgb(96 245 211 / 8%), transparent 40%),
+        linear-gradient(145deg, var(--bg), var(--bg-soft));
       color: var(--ink);
     }
 
@@ -49,10 +56,11 @@
 
     .card {
       background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 16px;
-      box-shadow: 0 4px 16px rgb(0 0 0 / 8%);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: var(--raised);
+      border: 1px solid rgb(255 255 255 / 4%);
+      backdrop-filter: blur(3px);
     }
 
     h1 {
@@ -74,24 +82,33 @@
     }
 
     button {
-      border: 1px solid var(--border);
-      border-radius: 8px;
+      border: none;
+      border-radius: 12px;
       padding: 10px 14px;
       font-size: 0.95rem;
       cursor: pointer;
-      background: transparent;
+      background: var(--panel-soft);
       color: var(--ink);
+      box-shadow: var(--raised);
+      transition: transform 140ms ease, box-shadow 140ms ease, opacity 140ms ease;
     }
 
     button.primary {
       background: var(--accent);
       color: var(--accent-ink);
-      border-color: var(--accent);
+      font-weight: 700;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:active {
+      transform: translateY(0);
+      box-shadow: var(--pressed);
     }
 
     button:disabled {
       opacity: 0.6;
       cursor: not-allowed;
+      transform: none;
     }
 
     .grid {
@@ -116,14 +133,39 @@
       width: 100%;
       min-height: 420px;
       resize: vertical;
-      border-radius: 10px;
-      border: 1px solid var(--border);
+      border-radius: 16px;
+      border: 1px solid rgb(255 255 255 / 6%);
       padding: 12px;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, monospace;
       font-size: 0.88rem;
       line-height: 1.45;
-      background: color-mix(in oklab, var(--panel) 94%, black 6%);
+      background: color-mix(in oklab, var(--panel) 85%, black 15%);
       color: var(--ink);
+      box-shadow: var(--pressed);
+    }
+
+    .bookmarklet {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 14px;
+      background: color-mix(in oklab, var(--panel-soft) 70%, black 30%);
+      box-shadow: var(--pressed);
+    }
+
+    .bookmarklet p {
+      margin: 0 0 10px;
+      font-size: 0.84rem;
+    }
+
+    #bookmarkletLink {
+      display: inline-block;
+      text-decoration: none;
+      padding: 9px 12px;
+      border-radius: 10px;
+      background: var(--accent);
+      color: var(--accent-ink);
+      font-weight: 700;
+      box-shadow: var(--raised);
     }
 
     .status {
@@ -159,6 +201,7 @@
       <div class="controls">
         <button id="strip" class="primary">Remove comments only</button>
         <button id="minify">Minify to single line</button>
+        <button id="bookmarklet">Convert to bookmarklet</button>
         <button id="copy">Copy output</button>
         <button id="sample">Load safe test sample</button>
       </div>
@@ -175,6 +218,15 @@
       </div>
 
       <div id="status" class="status">Ready.</div>
+
+      <section class="bookmarklet">
+        <p>
+          Bookmarklet builder: this uses parser-safe minification, encodes the script,
+          prefixes <code>javascript:</code>, and updates a draggable link.
+        </p>
+        <a id="bookmarkletLink" href="#" draggable="true">Drag me to your bookmarks bar</a>
+      </section>
+
       <div class="stats">
         <span id="inSize">Input size: 0 B</span>
         <span id="outSize">Output size: 0 B</span>
@@ -188,6 +240,7 @@
     const inputEl = document.getElementById('input');
     const outputEl = document.getElementById('output');
     const statusEl = document.getElementById('status');
+    const bookmarkletLink = document.getElementById('bookmarkletLink');
     const inSizeEl = document.getElementById('inSize');
     const outSizeEl = document.getElementById('outSize');
     const savedEl = document.getElementById('saved');
@@ -196,6 +249,34 @@
 
     inputEl.value = sample;
     updateStats();
+
+    const stripOptions = {
+      ecma: 2020,
+      compress: false,
+      mangle: false,
+      format: {
+        comments: false,
+        beautify: true,
+        semicolons: true,
+        quote_style: 3
+      }
+    };
+
+    const minifyOptions = {
+      ecma: 2020,
+      compress: {
+        passes: 2,
+        toplevel: false,
+        unsafe_arrows: true
+      },
+      mangle: true,
+      format: {
+        comments: false,
+        beautify: false,
+        semicolons: true,
+        quote_style: 3
+      }
+    };
 
     function bytes(value) {
       return new TextEncoder().encode(value).length;
@@ -222,6 +303,12 @@
       savedEl.textContent = `Saved: ${formatBytes(saved)} (${pct.toFixed(1)}%)`;
     }
 
+    function setBusy(isBusy) {
+      document.querySelectorAll('button').forEach((button) => {
+        button.disabled = isBusy;
+      });
+    }
+
     async function processCode(mode) {
       const source = inputEl.value;
       if (!source.trim()) {
@@ -237,36 +324,31 @@
       }
 
       setStatus('Processing...');
+      setBusy(true);
 
       try {
-        const isMinify = mode === 'minify';
-        const result = await window.Terser.minify(source, {
-          ecma: 2020,
-          compress: isMinify
-            ? {
-                passes: 2,
-                toplevel: false,
-                unsafe_arrows: true
-              }
-            : false,
-          mangle: isMinify,
-          format: {
-            comments: false,
-            beautify: !isMinify,
-            semicolons: true,
-            quote_style: 3
-          }
-        });
+        const isMinify = mode !== 'strip';
+        const result = await window.Terser.minify(source, isMinify ? minifyOptions : stripOptions);
 
         if (result.error) {
           throw result.error;
         }
 
         outputEl.value = result.code || '';
-        setStatus(isMinify ? 'Minified successfully.' : 'Comments removed successfully.');
+        setStatus(mode === 'bookmarklet' ? 'Bookmarklet generated successfully.' : isMinify ? 'Minified successfully.' : 'Comments removed successfully.');
+
+        if (mode === 'bookmarklet') {
+          const encoded = encodeURIComponent(outputEl.value);
+          const bookmarklet = `javascript:${encoded}`;
+          outputEl.value = bookmarklet;
+          bookmarkletLink.href = bookmarklet;
+          bookmarkletLink.title = bookmarklet;
+        }
       } catch (error) {
         outputEl.value = '';
         setStatus(`Parse/minify error: ${error.message || String(error)}`, false);
+      } finally {
+        setBusy(false);
       }
 
       updateStats();
@@ -274,6 +356,7 @@
 
     document.getElementById('strip').addEventListener('click', () => processCode('strip'));
     document.getElementById('minify').addEventListener('click', () => processCode('minify'));
+    document.getElementById('bookmarklet').addEventListener('click', () => processCode('bookmarklet'));
 
     document.getElementById('copy').addEventListener('click', async () => {
       if (!outputEl.value) {
